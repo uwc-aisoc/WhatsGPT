@@ -1,6 +1,6 @@
 #This is generative RSS training
 import tensorflow as tf
-path="./Datasets/Katya Swaminathan Censored.txt"
+path= "Datasets/katya whatsapp log.txt"
 text=open(path, 'rt').read() #this line ignores the guidelines to encode then decode by forcing 'b' mode as opposed to 't' and then decoding it
 #print(text) #rw test
 vocab= sorted(set(text))

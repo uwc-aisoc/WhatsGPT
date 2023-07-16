@@ -1,5 +1,5 @@
 import tensorflow as ts
-path="./Datasets/Katya Swaminathan Censored.txt"
+path= "Datasets/katya whatsapp log.txt"
 text=open(path, 'rt').read() #text not binary
 vocab= sorted(set(text))
 
