@@ -54,11 +54,12 @@ def remDate(text):
             # +2 because +1 for offset [:x] starts at 1. another +1 for the sapce after hyphen
     if not flag:
         print("No hyphen found")
-        return [text, text, i, False]
+        return [text, text, len(text), False]
 
 
 def remName(text):
     # repeat process with ":", always works as long as contact name does not have colon
+    # this DOES NOT work to simply prune the entire thing to just the message too, since the time has a colon as well
     flag = False
     for i in range(len(text)):
         # print(text[i], i)
@@ -69,7 +70,7 @@ def remName(text):
             # +2 for same reasons as above. no -1 as there is no trailing space
     if not flag:
         print("No colon found")
-        return [text, text, i, False]
+        return [text, text, len(text), False]
 
 
 # They return an array, [date/name, pruned string, position of hyphen or colon, flag]
@@ -118,24 +119,61 @@ def validLine(text, names):
         return False
 
 
-filepath = "./Datasets/Katya Swaminathan Censored.txt"
-file = open(filepath, "r")
-# print("\n"+ str(numberoflines(filepath)))
-
-
 names = []
 response = input("Type name(s) of people in the chat, case sensitive. Leave blank to continue: ")
 while not response == "":
     names.append(response)
     response = input("Continue. Leave blank to continue: ")
 
-invalids = []
-for i in range(1, numberoflines(filepath) + 1):
-    line = file.readline()
+invalidLines = []
+invalidPos = []
+# in format [start, end] where the invalid line starts and ends on the aforementioned numbers' byte location
+filepathr = "./Datasets/Katya Swaminathan Censored.txt"
+fileR = open(filepathr, "rb")
+# IMPORTANT TO USE BYTE MODE TO AVOID PROBLEMS WITH BYTE ADDRESSES!!!
+for i in range(1, numberoflines(filepathr) + 1):
+    currentPos=fileR.tell()
+    line = fileR.readline().decode('utf-8', 'strict') # decode from bytes
     valid = validLine(line, names)
     if not valid:
         print(f"Line {i} invalid\n")
-        invalids.append(i)
+        invalidLines.append(i)
+        invalidPos.append([currentPos,fileR.tell()])
     #time.sleep(0.01)
 
-print(len(invalids))
+# Important reminder: Remember to use bytes mode when reading and encode in 'utf-8', 'strict' before passing on to file
+
+filepathw = "./Datasets/"+str(input("input file name"))
+fileW = open(filepathw, 'wb')
+fileW.seek(0)
+fileR.seek(0)
+person = names[int(input(f"Which person? Type the index number: {names}"))]
+name = "Placeholder, as this is likely the first message of the chat"
+for stend in invalidPos: # start/end pairs
+    print(f"Current fileR position@1: {fileR.tell()}")
+
+    while fileR.tell() < stend[0]:
+        lineW=fileR.readline().decode('utf-8') # this moves the position too.
+        name=remName(remDate(lineW)[1])[0]
+        if person == name:
+            message=remName(remDate(lineW)[1])[1]
+            fileW.write(message.encode('utf-8'))  # read to next invalid position. have to de- and en- code as well to prune to messages only
+            print(f'Sent \'{message}\'')
+        else:
+            print(f"skipped, as name was \'{name}\', not \'{person}\'")
+
+    print(f"Current fileR position@2: {fileR.tell()}")
+    print(f'{stend[0]} to {stend[1]}:')
+    text=fileR.read(stend[1]-stend[0])
+    print(f"Current fileR position@3: {fileR.tell()}")
+    if "<Media omitted>" not in text.decode('utf-8','strict'):
+        if name == person:
+            if yesNo(f'Text independent of message metadata: {text.decode("utf-8", "strict")}. Keep?\nThe last message was \'{line}\''):
+                fileW.write(text)
+            else:
+                print(f"Skipping {stend[0]}-{stend[1]}")
+                print(f"Current fileR position@4: {fileR.tell()}")
+        else:
+            print(f"Skipped: name was \'{name}\' instead of \'{person}\'")
+    else:
+        print("<Media omitted> skip")
