@@ -151,6 +151,7 @@ fileW.seek(0)
 fileR.seek(0)
 person = names[int(input(f"Which person? Type the index number: {names}"))]
 name = "Placeholder, as this is likely the first message of the chat"
+lineW = "Placeholder, as this is likely the first message of the chat"
 #this first section handles non-invalid lines
 for stend in invalidPos: # start/end pairs
     # print(f"Current fileR position@1: {fileR.tell()}")
@@ -158,8 +159,7 @@ for stend in invalidPos: # start/end pairs
         lineW=fileR.readline().decode('utf-8') # this moves the position too.
         name=remName(remDate(lineW)[1])[0]
         if person == name:
-            message=remName(remDate(lineW)[1])[1]
-            fileW.write(message.encode('utf-8'))  # read to next invalid position. have to de- and en- code as well to prune to messages only
+            fileW.write(remName(remDate(lineW)[1])[1].encode('utf-8'))  # read to next invalid position. have to de- and en- code as well to prune to messages only
             # print(f'Sent \'{message}\'')
         # else:
         #     sys.stdout.write(f"\rLine at position {fileR.tell()} skipped, as name was \'{name}\', not \'{person}\'")
@@ -171,7 +171,7 @@ for stend in invalidPos: # start/end pairs
     # print(f"Current fileR position@3: {fileR.tell()}")
     if "<Media omitted>" not in text.decode('utf-8','strict'):
         if name == person:
-            if yesNo(f'Text independent of message metadata: \'{text.decode("utf-8", "strict")}\'. Keep?\nThe last message was \'{line}\''):
+            if yesNo(f'Text independent of message metadata: \'{text.decode("utf-8", "strict")}\'. Keep?\nThe last message was \'{lineW}\''):
                 fileW.write(text)
             else:
                 print(f"Skipping {stend[0]}-{stend[1]}")
