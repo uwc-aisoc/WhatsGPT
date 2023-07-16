@@ -6,16 +6,17 @@ import time
 def yesNo(prompt):
     response = ""
     validResponses = ['y', 'n', 'Y', 'N']
-    yes = ['y','Y']
-    no = ['n','N']
+    yes = ['y', 'Y']
+    no = ['n', 'N']
     while not response in validResponses:
-        response = input(str(prompt)+" (y/n): ")
+        response = input(str(prompt) + " (y/n): ")
         if response in yes:
             return True
         elif response in no:
             return False
         else:
             print(f"Response \'{response}\' not valid, try again: ")
+
 
 def recogniseDate(line):  # so far, this function looks for the narrow no break space
 
@@ -25,6 +26,7 @@ def recogniseDate(line):  # so far, this function looks for the narrow no break 
     # There is also a Narrow No Break Space or NNBSP (" ") between the time and meridian marker (AM/PM)
     # e.g: "6/9/22, 2:13 PM - [Name]: Just in case :)"
     return " " in line
+
 
 def numberoflines(filepath):
     file = open(filepath, "r")
@@ -41,12 +43,14 @@ def numberoflines(filepath):
 
 # ----These are pattern deleters----
 def remDate(text):
-    flag=False
+    flag = False
     for i in range(len(text)):
         # print(text[i], i)
         if text[i] == "-":
             # print("Hyphen found at index", str(i) + ". Halt")
-            return [text[:i], text.replace(text[:(i + 2)], ""), i,  True]
+            flag = True
+            return [text[:i - 1], text.replace(text[:(i + 2)], ""), i, True]
+            # -1 to remove the trailing space
             # +2 because +1 for offset [:x] starts at 1. another +1 for the sapce after hyphen
     if not flag:
         print("No hyphen found")
@@ -60,8 +64,9 @@ def remName(text):
         # print(text[i], i)
         if text[i] == ":":
             # print("Colon found at index", str(i) + ". Halt")
+            flag = True
             return [text[:i], text.replace(text[:(i + 2)], ""), i, True]
-            # +2 for same reasons as above
+            # +2 for same reasons as above. no -1 as there is no trailing space
     if not flag:
         print("No colon found")
         return [text, text, i, False]
@@ -75,24 +80,30 @@ def remName(text):
 
 def validLine(text, names):
     # returns True on normal, False on not line. if suspicious, user will be prompted
-    date = remDate(text)[0]
-    noDate = remDate(text)[1] # line without the date
-    hyphenPos = remDate(text)[2]
-    hyphenFound = remDate(text)[3]
-    name = remName(noDate)[0]
-    # message = remName(noDate)[1]
-    # colonPos = remName(noDate)[2]
-    colonFound = remName(noDate)[3]
+    rD = remDate(text)  # these assignments are to prevent the function from being called more than once
+    date = rD[0]
+    noDate = rD[1]  # line without the date
+    hyphenPos = rD[2]
+    hyphenFound = rD[3]
+    rN = remName(noDate)
+    name = rN[0]
+    # message = rN(noDate)[1]
+    # colonPos = rN(noDate)[2]
+    colonFound = rN[3]
 
     if hyphenFound and colonFound:
-        if hyphenPos < 15 or hyphenPos > 18:
+        if hyphenPos >= 16 and hyphenPos <= 19:  # the messages are 15-18 long, but the hyphens are one after that
+            if "<Media omitted>" in text:
+                print("Media omitted found")
+                return False
             if name in names:
                 return True
             else:
                 return yesNo(f'Name not in names list: {name}. Is this name acceptable?')
                 # maybe add something here to add the name to the list of names
         else:
-            acceptable = yesNo(f"The date is of abnormal length. Is \'{date}\' a normal date?")
+            acceptable = yesNo(
+                f"The date is of abnormal length {hyphenPos} as opposed to range 16-19. Is \'{date}\' a normal date?")
             if acceptable:
                 if name in names:
                     return True
@@ -107,13 +118,24 @@ def validLine(text, names):
         return False
 
 
-filepath = "../Katya Swaminathan Censored.txt"
+filepath = "./Datasets/Katya Swaminathan Censored.txt"
 file = open(filepath, "r")
 # print("\n"+ str(numberoflines(filepath)))
 
-for i in range(numberoflines(filepath)):
-    print(f'Line {i+1} is valid: {validLine(file.readline())}')
 
-# dehyp = remDate(input("Enter message with hyphen"))
-# print("Deyphenated:", dehyp[1])
-# print("Decolonated:", remName(dehyp[1])[1])
+names = []
+response = input("Type name(s) of people in the chat, case sensitive. Leave blank to continue: ")
+while not response == "":
+    names.append(response)
+    response = input("Continue. Leave blank to continue: ")
+
+invalids = []
+for i in range(1, numberoflines(filepath) + 1):
+    line = file.readline()
+    valid = validLine(line, names)
+    if not valid:
+        print(f"Line {i} invalid\n")
+        invalids.append(i)
+    #time.sleep(0.01)
+
+print(len(invalids))
