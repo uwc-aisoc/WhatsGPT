@@ -119,7 +119,7 @@ def validLine(text, names):
         return False
 
 
-filepathr = "./Datasets/"+input("Name of input file:")
+filepathr = "./Datasets/"+input("Name of input file: ")
 fileR = open(filepathr, "rb")
 names = []
 response = input("Type name(s) of people in the chat, case sensitive. Leave blank to continue: ")
@@ -142,10 +142,10 @@ for i in range(1, numberoflines(filepathr) + 1):
         invalidLines.append(i)
         invalidPos.append([currentPos,fileR.tell()])
     time.sleep(0.001)
-print(f"\n{len(invalidPos)} lines found invalid")
+print(f"\n{len(invalidPos)} lines found invalid (not connected to a time, or contains media that cannot be processed)")
 # Important reminder: Remember to use bytes mode when reading and encode in 'utf-8', 'strict' before passing on to file
 
-filepathw = "./Datasets/"+str(input("input file name"))
+filepathw = "./Datasets/"+str(input("Input file name: "))
 fileW = open(filepathw, 'wb')
 fileW.seek(0)
 fileR.seek(0)
@@ -163,7 +163,7 @@ for stend in invalidPos: # start/end pairs
             # print(f'Sent \'{message}\'')
         # else:
         #     sys.stdout.write(f"\rLine at position {fileR.tell()} skipped, as name was \'{name}\', not \'{person}\'")
-        #     sys.stdout.flush()
+        #     sys.stdoSo this iut.flush()
     # print(f"Current fileR position@2: {fileR.tell()}")
     ## this second part handles invalid lines
     #print(f'{stend[0]} to {stend[1]}:')
@@ -171,7 +171,7 @@ for stend in invalidPos: # start/end pairs
     # print(f"Current fileR position@3: {fileR.tell()}")
     if "<Media omitted>" not in text.decode('utf-8','strict'):
         if name == person:
-            if yesNo(f'Text independent of message metadata: \'{text.decode("utf-8", "strict")}\'. Keep?\nThe last message was \'{lineW}\''):
+            if yesNo('Text independent of message metadata: \''+text.decode("utf-8", "strict").replace("\n","")+'\'. Keep?\nThe last message was '+ lineW.replace("\n","") +'\''): #this is really verbose because f strings can't evaluate backslashes for some god forsaken reason
                 fileW.write(text)
             else:
                 print(f"Skipping {stend[0]}-{stend[1]}")
