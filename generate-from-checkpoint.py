@@ -1,7 +1,6 @@
 import tensorflow as tf
 import os
 import time
-
 path= "Datasets/chris-final.txt"
 length=-1 # -1 means all of file
 file=open(path, 'rb')
@@ -51,7 +50,7 @@ model = MyModel(
 
 # time to load shit lmfao
 
-checkpoint_path='./training_checkpoints-christopher/ckpt_230'
+checkpoint_path= 'checkpoints/christopher-dm_katya/ckpt_230'
 model.load_weights(checkpoint_path)
 
 # Copy paste from generative_rnn the onestep model
@@ -104,7 +103,8 @@ one_step_model = OneStep(model, id2char, char2id)
 
 start = time.time()
 states = None
-next_char = tf.constant(['Why did the chicken cross the road? '])
+prompt: str = input("Prompt the model: ")
+next_char = tf.constant([prompt])
 result = [next_char]
 
 for n in range(1000):

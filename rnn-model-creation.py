@@ -134,7 +134,7 @@ model.compile(optimizer='adam', loss=loss)
 #Training time
 
 # Directory where the checkpoints will be saved
-checkpoint_dir = './training_checkpoints-christopher'
+checkpoint_dir = 'checkpoints/christopher-dm_katya'
 # Name of the checkpoint files
 checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt_{epoch}")
 
