@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 import os
 import time
-path= "Datasets/olivier-final.txt"
+path= "Datasets/chris-final.txt"
 length=-1 # -1 means all of file
 file=open(path, 'rb')
 text=file.read(length).decode('utf-8')
@@ -134,7 +134,7 @@ model.compile(optimizer='adam', loss=loss)
 #Training time
 
 # Directory where the checkpoints will be saved
-checkpoint_dir = './training_checkpoints-olivier'
+checkpoint_dir = './training_checkpoints-christopher'
 # Name of the checkpoint files
 checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt_{epoch}")
 
