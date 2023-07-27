@@ -1,6 +1,24 @@
 # remove date, time, and usernames
 import sys
 import time
+import os
+
+def fileexplorer():
+    pathvalid = lambda c: (os.path.exists(c) or c in ['..', '.'])
+    while True:
+        cwdpath = ""
+        print(f"Current directory: {os.getcwd()}\nDirectory contents:\n{os.listdir()}\n.. and . available")
+        while not pathvalid(cwdpath):
+            cwdpath = input("Select file or directory: ")
+            if not os.path.exists(cwdpath):
+                print("Try again")
+        if os.path.isfile(cwdpath):
+            return os.getcwd()+"/"+cwdpath
+        elif os.path.isdir(cwdpath) and pathvalid(cwdpath):
+            os.chdir(cwdpath)
+            print(f"> cd {cwdpath}")
+        else:
+            sys.exit("Referenced path neither file, directory, nor symlink?")
 
 
 def yesNo(prompt):
@@ -88,8 +106,8 @@ def validLine(text, names):
     hyphenFound = rD[3]
     rN = remName(noDate)
     name = rN[0]
-    # message = rN(noDate)[1]
-    # colonPos = rN(noDate)[2]
+    # message = rN[1]
+    # colonPos = rN[2]
     colonFound = rN[3]
 
     if hyphenFound and colonFound:
@@ -100,7 +118,13 @@ def validLine(text, names):
             if name in names:
                 return True
             else:
-                return yesNo(f'Name not in names list: {name}. Is this name acceptable?')
+                recognised = yesNo(f'Name not in names list: {name}. Is this name acceptable?')
+                if recognised:
+                    print("Added to names list")
+                    names.append(name)
+                    return True
+                else:
+                    return False
                 # maybe add something here to add the name to the list of names
         else:
             acceptable = yesNo(
@@ -109,8 +133,13 @@ def validLine(text, names):
                 if name in names:
                     return True
                 else:
-                    return yesNo(f'Name not in names list: {name}. Is this name acceptable?')
-                    # maybe add something here to add the name to the list of names
+                    recognised = yesNo(f'Name not in names list: {name}. Is this name acceptable?')
+                    if recognised:
+                        print("Added to names list")
+                        names.append(name)
+                        return True
+                    else:
+                        return False
             elif not acceptable:
                 return False
             else:
@@ -119,7 +148,9 @@ def validLine(text, names):
         return False
 
 
-filepathr = "./Datasets/"+input("Name of input file: ")
+# filepathr = "./Datasets/"+input("Name of input file: ")
+print("Select file to read from:")
+filepathr = fileexplorer()
 fileR = open(filepathr, "rb")
 names = []
 response = input("Type name(s) of people in the chat, case sensitive. Leave blank to continue: ")
@@ -145,7 +176,9 @@ for i in range(1, numberoflines(filepathr) + 1):
 print(f"\n{len(invalidPos)} lines found invalid (not connected to a time, or contains media that cannot be processed)")
 # Important reminder: Remember to use bytes mode when reading and encode in 'utf-8', 'strict' before passing on to file
 
-filepathw = "./Datasets/"+str(input("Input file name: "))
+# filepathw = "./Datasets/"+str(input("Input file name: "))
+print("Select output file:")
+filepathw = fileexplorer()
 fileW = open(filepathw, 'wb')
 fileW.seek(0)
 fileR.seek(0)
@@ -154,19 +187,15 @@ name = "Placeholder, as this is likely the first message of the chat"
 lineW = "Placeholder, as this is likely the first message of the chat"
 #this first section handles non-invalid lines
 for stend in invalidPos: # start/end pairs
-    # print(f"Current fileR position@1: {fileR.tell()}")
+    # print(f"Current fileR position@1: {fileR.tell()}") # all fileR position@x are for debugging where cursor is
     while fileR.tell() < stend[0]:
         lineW=fileR.readline().decode('utf-8') # this moves the position too.
         name=remName(remDate(lineW)[1])[0]
         if person == name:
             fileW.write(remName(remDate(lineW)[1])[1].encode('utf-8'))  # read to next invalid position. have to de- and en- code as well to prune to messages only
-            # print(f'Sent \'{message}\'')
-        # else:
-        #     sys.stdout.write(f"\rLine at position {fileR.tell()} skipped, as name was \'{name}\', not \'{person}\'")
-        #     sys.stdoSo this iut.flush()
     # print(f"Current fileR position@2: {fileR.tell()}")
-    ## this second part handles invalid lines
-    #print(f'{stend[0]} to {stend[1]}:')
+    # this second part handles invalid lines
+    # print(f'{stend[0]} to {stend[1]}:')
     text=fileR.read(stend[1]-stend[0])
     # print(f"Current fileR position@3: {fileR.tell()}")
     if "<Media omitted>" not in text.decode('utf-8','strict'):
