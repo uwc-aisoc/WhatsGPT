@@ -2,66 +2,13 @@
 import sys
 import time
 import os
-
-def fileexplorer(fileMustExist=False,directoriesSelectable=False):
-    print(f"Selected file must exist?: {fileMustExist}")
-    print(f"Directories are selectable?: {directoriesSelectable}")
-    print("Note: This program cannot create directories.")
-    while True:
-        cwdpath = ""
-        print(f"Current directory: {os.getcwd()}\nDirectory contents:\n{os.listdir()}\n.. and . are accepted")
-        cwdpath: str = input("Select file or directory: ")
-        if os.path.isdir(cwdpath):
-            if directoriesSelectable and yesNo("Do you wish to select this directory? If not, this program will change directories instead"):
-                return os.getcwd()+"/"+cwdpath+"/"
-            print(f">cd {cwdpath}")
-            os.chdir(cwdpath)
-        elif os.path.isfile(cwdpath):
-            if yesNo(f"Confirm: {cwdpath}"):
-                return os.getcwd()+"/"+cwdpath
-            else:
-                print("Cancelled, reenter:")
-        elif not fileMustExist:
-            if yesNo(f"You are attempting to return a FILE that does not exist. This likely means that the program will create it instead.\nConfirm: {cwdpath}"):
-                return os.getcwd()+"/"+cwdpath
-            else:
-                print("Cancelled, reenter:")
-        else:
-            print("The path does not exist. Please try again.")
-
-
-
-
-def yesNo(prompt):
-    response = ""
-    validResponses = ['y', 'n', 'Y', 'N']
-    yes = ['y', 'Y']
-    no = ['n', 'N']
-    while not response in validResponses:
-        response = input(str(prompt) + " (y/n): ")
-        if response in yes:
-            return True
-        elif response in no:
-            return False
-        else:
-            print(f"Response \'{response}\' not valid, try again: ")
-
-
-def recogniseDate(line):  # so far, this function looks for the narrow no break space
-
-    # dates are in the format M/D/YY, H:MM (AM/PM). both Hour, Month and Day can be either one or two numbers long.
-    # Year is the last two digits of the current year
-    # At the end of the date/time, there is a hyphen ("-") surrounded by spaces
-    # There is also a Narrow No Break Space or NNBSP (" ") between the time and meridian marker (AM/PM)
-    # e.g: "6/9/22, 2:13 PM - [Name]: Just in case :)"
-    return " " in line
-
+import snippets
 
 def numberoflines(filepath):
     file = open(filepath, "r")
     count = 0
     # wait=0.001
-    while (file.readline() != ""):
+    while file.readline() != "":
         count = count + 1
         sys.stdout.write("\r" + "Number of lines in file " + filepath + ": " + str(count))
         # use this format of stdout write with \r for dynamic one line printing
@@ -72,7 +19,7 @@ def numberoflines(filepath):
 
 
 # ----These are pattern deleters----
-def remDate(text):
+def remDate(text): # Hyphens
     flag = False
     for i in range(len(text)):
         # print(text[i], i)
@@ -87,7 +34,7 @@ def remDate(text):
         return [text, text, len(text), False]
 
 
-def remName(text):
+def remName(text): # Colons
     # repeat process with ":", always works as long as contact name does not have colon
     # this DOES NOT work to simply prune the entire thing to just the message too, since the time has a colon as well
     flag = False
@@ -118,26 +65,27 @@ def validLine(text, names):
     hyphenFound = rD[3]
     rN = remName(noDate)
     name = rN[0]
-    message = rN[1]
+    message = rN[1].replace("\n","") # messages end in a newline. need to del \n to properly work with blacklist
     # print(f"The message is {message}")
     # colonPos = rN[2]
     colonFound = rN[3]
+    # todo: make regex blacklist to remove "A removed B" or "A added C" etc.
     blacklist = ["<Media omitted>",
                  "Missed voice call",
                  "Missed video call",
-                 "This message was deleted"]
-
+                 "This message was deleted"] # blacklist messages, case sensitive, strict ('==', not 'in')
+    # ngl this trace table format is giving me cancer
     if hyphenFound and colonFound:
-        if hyphenPos >= 16 and hyphenPos <= 19:  # the dates are 15-18 long, but the hyphens are one after that
+        if 16 <= hyphenPos <= 19:  # the dates are 15-18 long, but the hyphens are one after that
             for phrase in blacklist:
                 # print(phrase+message)
-                if phrase == message.replace("\n",""):
+                if phrase == message:
                     # print(f"blocked {phrase}")
                     return 1
             if name in names:
                 return 0
             else:
-                recognised = yesNo(f'Name not in names list: {name}. Is this name acceptable?')
+                recognised = snippets.yesNo(f'Name not in names list: {name}. Is this name acceptable?')
                 if recognised:
                     print("Added to names list")
                     names.append(name)
@@ -146,13 +94,13 @@ def validLine(text, names):
                     return 1
                 # maybe add something here to add the name to the list of names
         else:
-            acceptable = yesNo(
+            acceptable = snippets.yesNo(
                 f"The date is of abnormal length {hyphenPos} as opposed to range 16-19. Is \'{date}\' a normal date?")
             if acceptable:
                 if name in names:
                     return 0
                 else:
-                    recognised = yesNo(f'Name not in names list: {name}. Is this name acceptable?')
+                    recognised = snippets.yesNo(f'Name not in names list: {name}. Is this name acceptable?')
                     if recognised:
                         print("Added to names list")
                         names.append(name)
@@ -169,7 +117,7 @@ def validLine(text, names):
 
 # filepathr = "./Datasets/"+input("Name of input file: ")
 print("Select file to read from:")
-filepathr = fileexplorer(fileMustExist=True)
+filepathr = snippets.fileexplorer(fileMustExist=True)
 fileR = open(filepathr, "rb")
 names = []
 response = input("Type name(s) of people in the chat, case sensitive. Leave blank to continue: ")
@@ -197,7 +145,7 @@ print(f"\n{len(invalidPos)} lines found invalid (not connected to a time, or con
 
 # filepathw = "./Datasets/"+str(input("Input file name: "))
 print("Select output file:")
-filepathw = fileexplorer()
+filepathw = snippets.fileexplorer()
 fileW = open(filepathw, 'wb')
 fileW.seek(0)
 fileR.seek(0)
@@ -222,16 +170,16 @@ for stend in invalidPos: # start/end pairs
     # print(f"Current fileR position@3: {fileR.tell()}")
     if name == person and not stend[2] == 1: # first operator actually checks if the LAST LINE WITH A NAME ASSOCIATED is the same as the person being looked for. stend2-->1 means it is definitely not right
         print("The stend code passed is",stend[2])
-        if yesNo('Text independent of message metadata: \'' + text.decode("utf-8", "strict").replace("\n","") + '\'. Keep?\nThe last message was ' + lineW.replace(
+        if snippets.yesNo('Text independent of message metadata: \'' + text.decode("utf-8", "strict").replace("\n","") + '\'. Keep?\nThe last message was ' + lineW.replace(
                 "\n",
                 "") + '\''):  # this is really verbose because f strings can't evaluate backslashes for some god forsaken reason
             fileW.write(text)
         else:
             print(f"Skipping {stend[0]}-{stend[1]}")
             # print(f"Current fileR position@4: {fileR.tell()}")
-    else:
-        if stend[2]==2: # it is either 2 or 1.
-            print(f"Blocked name: {name}")
-        else:
-            print(f"Blocked phrase: {message} due to code {stend[2]}")
+    # else: # debugging
+    #     if stend[2]==2: # it is either 2 or 1.
+    #         print(f"Blocked name: {name}")
+    #     else:
+    #         print(f"Blocked phrase: {message} due to code {stend[2]}")
 
