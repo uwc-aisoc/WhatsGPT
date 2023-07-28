@@ -2,8 +2,13 @@ import tensorflow as tf
 import time
 import os
 
+
 # -------------tf stuff ------------- #
 
+
+# ----------------------------------- #
+# spec: 256 dim units, 1024 rnn units #
+# ----------------------------------- #
 def model_of_spec(path_to_training_text, length=-1):
     file = open(path_to_training_text, 'rb')
     text = file.read(length).decode('utf-8')
@@ -104,6 +109,21 @@ def one_step_model(path_to_training_text, model, length=-1, ):
     return OneStep(model, id2char, char2id)  # substitute this line with mapping functions
 
 
+def ckpt(path):  # takes the directory and returns the latest checkpoint identifier (i.e ckpt_14)
+    lscurdir = os.listdir(path)
+    highest=0
+    for i in range(len(lscurdir)-1, -1, -1): # this looks really cursed but it decrements by 1 from the last element to the first.
+        if "data" in lscurdir[i] or "checkpoint" == lscurdir[i]:
+            lscurdir.pop(i) # lscurdir.pop() [being without an argument] should work too
+        else:
+            lscurdir[i] = os.path.splitext(lscurdir[i])[0] # remove extension
+            print(lscurdir[i])
+            curno = int(lscurdir[i][5:]) # "ckpt_" --> 5 characters
+            if curno > highest:
+                highest = curno
+    return path+"ckpt_"+str(highest) # no need for / as directory is being passed
+
+
 # -------------general------------- #
 
 
@@ -133,8 +153,6 @@ def yesNo(prompt):
 # ---------------------------------------------------- #
 
 
-
-
 def fileexplorer(fileMustExist=False, directoriesSelectable=False):
     print(f"Selected file must exist?: {fileMustExist}")
     print(f"Directories are selectable?: {directoriesSelectable}")
@@ -162,4 +180,3 @@ def fileexplorer(fileMustExist=False, directoriesSelectable=False):
                 print("Cancelled, reenter:")
         else:
             print("The path does not exist. Please try again.")
-

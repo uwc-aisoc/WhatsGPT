@@ -11,9 +11,16 @@ model = snippets.model_of_spec(path)
 # time to load shit lmfao
 
 print("Select directory that holds the checkpoints:")
-checkpoint_path = snippets.fileexplorer()
+checkpoint_path = snippets.fileexplorer(True, True)
+latestcheckpoint = snippets.ckpt(checkpoint_path)
+selectlatest = snippets.yesNo(f"The latest checkpoint is {latestcheckpoint}. Do you wish to choose this one?")
 
-model.load_weights(checkpoint_path)
+if selectlatest:
+    model.load_weights(latestcheckpoint) # fileexplorer already puts '/' at end
+else:
+    model.load_weights(checkpoint_path+"ckpt_"+input("Select checkpoint number"))
+
+
 
 # Copy paste from generative_rnn the onestep model
 
