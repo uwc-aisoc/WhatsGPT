@@ -2,24 +2,23 @@ import tensorflow as tf
 import os
 import time
 
-import module_tf
-import module_general
+import snippets
 
 print("Select the training material of the model:")
-path = module_general.fileexplorer(True, False)
-model = module_tf.model_of_spec(path)
+path = snippets.fileexplorer(True, False)
+model = snippets.model_of_spec(path)
 
 # time to load shit lmfao
 
 print("Select directory that holds the checkpoints:")
-checkpoint_path = module_general.fileexplorer()
+checkpoint_path = snippets.fileexplorer()
 
 model.load_weights(checkpoint_path)
 
 # Copy paste from generative_rnn the onestep model
 
 
-one_step_model = module_tf.one_step_model(path, model)
+one_step_model = snippets.one_step_model(path, model)
 
 start = time.time()
 states = None

@@ -2,6 +2,10 @@ import tensorflow as tf
 import numpy as np
 import os
 import time
+
+import module_tf
+import module_general
+
 path= "Datasets/chris-final.txt"
 length=-1 # -1 means all of file
 file=open(path, 'rb')
