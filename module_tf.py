@@ -2,8 +2,8 @@ import tensorflow as tf
 import time
 
 
-def model_of_spec(path, length=-1):
-    file = open(path, 'rb')
+def model_of_spec(path_to_training_text, length=-1):
+    file = open(path_to_training_text, 'rb')
     text = file.read(length).decode('utf-8')
     vocab = sorted(set(text))
 
@@ -42,16 +42,16 @@ def model_of_spec(path, length=-1):
                 return x
 
     # print("init model")
-    model = MyModel(
+    return MyModel(
         vocab_size=vocab_size,
         embedding_dim=embedding_dim,
         rnn_units=rnn_units)
-    return model
 
 
-def one_step_model(path, model, length=-1,):
 
-    file = open(path, 'rb')
+def one_step_model(path_to_training_text, model, length=-1,):
+
+    file = open(path_to_training_text, 'rb')
     text = file.read(length).decode('utf-8')
     vocab = sorted(set(text))
 
@@ -102,21 +102,25 @@ def one_step_model(path, model, length=-1,):
             # Return the characters and model state.
             return predicted_chars, states
 
-    one_step_model = OneStep(model, id2char, char2id)  # substitute this line with mapping functions
+    return OneStep(model, id2char, char2id)  # substitute this line with mapping functions
     # i.e,
     # char2id=tf.keras.layers.StringLookup(vocabulary=list(vocab), mask_token=None)
     # id2char=tf.keras.layers.StringLookup(vocabulary=char2id.get_vocabulary(), invert=True, mask_token=None)
 
-    start = time.time()
-    states = None
-    next_char = tf.constant(['Okay'])
-    result = [next_char]
 
-    for n in range(1000):
-        next_char, states = one_step_model.generate_one_step(next_char, states=states)
-        result.append(next_char)
 
-    result = tf.strings.join(result)
-    end = time.time()
-    print(result[0].numpy().decode('utf-8'), '\n\n' + '_' * 80)
-    print('\nRun time:', end - start)
+
+
+    # start = time.time()
+    # states = None
+    # next_char = tf.constant(['Okay'])
+    # result = [next_char]
+    #
+    # for n in range(1000):
+    #     next_char, states = one_step_model.generate_one_step(next_char, states=states)
+    #     result.append(next_char)
+    #
+    # result = tf.strings.join(result)
+    # end = time.time()
+    # print(result[0].numpy().decode('utf-8'), '\n\n' + '_' * 80)
+    # print('\nRun time:', end - start)
