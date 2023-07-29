@@ -111,17 +111,18 @@ def one_step_model(path_to_training_text, model, length=-1, ):
 
 def ckpt(path):  # takes the directory and returns the latest checkpoint identifier (i.e ckpt_14)
     lscurdir = os.listdir(path)
-    highest=0
-    for i in range(len(lscurdir)-1, -1, -1): # this looks really cursed but it decrements by 1 from the last element to the first.
+    highest = 0
+    for i in range(len(lscurdir) - 1, -1,
+                   -1):  # this looks really cursed but it decrements by 1 from the last element to the first.
         if "data" in lscurdir[i] or "checkpoint" == lscurdir[i]:
-            lscurdir.pop(i) # lscurdir.pop() [being without an argument] should work too
+            lscurdir.pop(i)  # lscurdir.pop() [being without an argument] should work too
         else:
-            lscurdir[i] = os.path.splitext(lscurdir[i])[0] # remove extension
+            lscurdir[i] = os.path.splitext(lscurdir[i])[0]  # remove extension
             print(lscurdir[i])
-            curno = int(lscurdir[i][5:]) # "ckpt_" --> 5 characters
+            curno = int(lscurdir[i][5:])  # "ckpt_" --> 5 characters
             if curno > highest:
                 highest = curno
-    return path+"ckpt_"+str(highest) # no need for / as directory is being passed
+    return path + "ckpt_" + str(highest)  # no need for / as directory is being passed
 
 
 # -------------general------------- #
@@ -130,6 +131,7 @@ def ckpt(path):  # takes the directory and returns the latest checkpoint identif
 # ---------------------------------------------------- #
 # Dependents: all Datasets/format/ programs            #
 # Dependencies: none                                   #
+# Returns a boolean depending on user response         #
 # ---------------------------------------------------- #
 
 
@@ -150,32 +152,51 @@ def yesNo(prompt):
 # ---------------------------------------------------- #
 # Dependents: all Datasets/format/ programs            #
 # Dependencies: os, yesNo.py                           #
+# Inputs: fileMustExist, forcetype                     #
+#    forcetype accepts "file", "directory", forces the #
+#    user to enter the type
+# Outputs: [path, type]                                #
+#    type is either "file" or "directory"              #
 # ---------------------------------------------------- #
 
 
-def fileexplorer(fileMustExist=False, directoriesSelectable=False):
+def fileexplorer(fileMustExist=False, forcetype="none"):
     print(f"Selected file must exist?: {fileMustExist}")
-    print(f"Directories are selectable?: {directoriesSelectable}")
-    print("Note: This program cannot create directories.")  # todo: allow creation of directories
+    print(f"Force type: {forcetype}")
+    # leave creation of directory or file to calling instance
     while True:
-        cwdpath = ""
         print(f"Current directory: {os.getcwd()}\nDirectory contents:\n{os.listdir()}\n.. and . are accepted")
         cwdpath: str = input("Select file or directory: ")
         if os.path.isdir(cwdpath):
-            if directoriesSelectable and yesNo(
-                    "Do you wish to select this directory? If not, this program will change directories instead"):
-                return os.getcwd() + "/" + cwdpath + "/"
-            print(f">cd {cwdpath}")
-            os.chdir(cwdpath)
-        elif os.path.isfile(cwdpath):
-            if yesNo(f"Confirm: {cwdpath}"):
-                return os.getcwd() + "/" + cwdpath
+            if forcetype != "directory":
+                if yesNo(
+                        "Do you wish to select this directory? If not, this program will change directories instead"):
+                    return [os.getcwd() + "/" + cwdpath, "directory"]
+                else:
+                    print(f">cd {cwdpath}")
+                    os.chdir(cwdpath)
             else:
-                print("Cancelled, reenter:")
+                print(f"This is a directory. Please try again and select a {forcetype}")
+        elif os.path.isfile(cwdpath):  # includes symlinks :o
+            if forcetype != "file":
+                if yesNo(f"Confirm: {cwdpath}"):
+                    return [os.getcwd() + "/" + cwdpath, "file"]
+                else:
+                    print("Cancelled, reenter:")
+            else:
+                print(f"This is a file. Please try again and select a {forcetype}")
         elif not fileMustExist:
             if yesNo(
-                    f"You are attempting to return a FILE that does not exist. This likely means that the program will create it instead.\nConfirm: {cwdpath}"):
-                return os.getcwd() + "/" + cwdpath
+                    f"You are attempting to return a path that does not exist. Confirm: {cwdpath}"):
+                if forcetype == "file":
+                    return [os.getcwd() + "/" + cwdpath, "file"]
+                elif forcetype == "directory":
+                    return [os.getcwd() + "/" + cwdpath, "directory"]
+                else:
+                    if yesNo("Return a file? If not, the program will return a directory."):
+                        return [os.getcwd() + "/" + cwdpath, "file"]
+                    else:
+                        return [os.getcwd() + "/" + cwdpath, "directory"]
             else:
                 print("Cancelled, reenter:")
         else:
