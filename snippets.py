@@ -205,3 +205,4 @@ def fileexplorer(fileMustExist=False, forcetype="none") -> list[str]:
                 print("Cancelled, reenter:")
         else:
             print("The path does not exist. Please try again.")
+        print("----------------------------------") # separate instances
