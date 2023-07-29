@@ -26,7 +26,7 @@ def model_of_spec(path_to_training_text, length=-1):
     rnn_units = 1024
 
     class MyModel(tf.keras.Model):
-        def __init__(self, vocab_size, embedding_dim, rnn_units) -> object:
+        def __init__(self, vocab_size, embedding_dim, rnn_units):
             super().__init__(self)
             self.embedding = tf.keras.layers.Embedding(vocab_size, embedding_dim)
             self.gru = tf.keras.layers.GRU(rnn_units,
@@ -109,7 +109,7 @@ def one_step_model(path_to_training_text, model, length=-1, ):
     return OneStep(model, id2char, char2id)  # substitute this line with mapping functions
 
 
-def ckpt(path):  # takes the directory and returns the latest checkpoint identifier (i.e ckpt_14)
+def ckpt(path) -> str:  # takes the directory and returns the latest checkpoint identifier (i.e ckpt_14)
     lscurdir = os.listdir(path)
     highest = 0
     for i in range(len(lscurdir) - 1, -1,
@@ -135,7 +135,7 @@ def ckpt(path):  # takes the directory and returns the latest checkpoint identif
 # ---------------------------------------------------- #
 
 
-def yesNo(prompt):
+def yesNo(prompt) -> bool:
     response = ""
     yes = ['y', 'Y']
     no = ['n', 'N']
@@ -160,7 +160,7 @@ def yesNo(prompt):
 # ---------------------------------------------------- #
 
 
-def fileexplorer(fileMustExist=False, forcetype="none"):
+def fileexplorer(fileMustExist=False, forcetype="none") -> list[str]:
     print(f"Selected file must exist?: {fileMustExist}")
     print(f"Force type: {forcetype}")
     # leave creation of directory or file to calling instance
@@ -168,23 +168,27 @@ def fileexplorer(fileMustExist=False, forcetype="none"):
         print(f"Current directory: {os.getcwd()}\nDirectory contents:\n{os.listdir()}\n.. and . are accepted")
         cwdpath: str = input("Select file or directory: ")
         if os.path.isdir(cwdpath):
-            if forcetype != "directory":
+            if forcetype not in ["file", "directory"]:
                 if yesNo(
                         "Do you wish to select this directory? If not, this program will change directories instead"):
                     return [os.getcwd() + "/" + cwdpath, "directory"]
                 else:
                     print(f">cd {cwdpath}")
                     os.chdir(cwdpath)
-            else:
+            elif forcetype == "file":
                 print(f"This is a directory. Please try again and select a {forcetype}")
+            else: # must be directory
+                return [os.getcwd() + "/" + cwdpath, "directory"]
         elif os.path.isfile(cwdpath):  # includes symlinks :o
-            if forcetype != "file":
+            if forcetype not in ["file", "directory"]:
                 if yesNo(f"Confirm: {cwdpath}"):
                     return [os.getcwd() + "/" + cwdpath, "file"]
                 else:
                     print("Cancelled, reenter:")
-            else:
+            elif forcetype == "directory":
                 print(f"This is a file. Please try again and select a {forcetype}")
+            else:
+                return [os.getcwd() + "/" + cwdpath, "file"]
         elif not fileMustExist:
             if yesNo(
                     f"You are attempting to return a path that does not exist. Confirm: {cwdpath}"):
