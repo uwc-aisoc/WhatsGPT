@@ -6,7 +6,7 @@ import time
 import snippets
 
 print("Select path to training text")
-path = snippets.fileexplorer(True, True)
+path = snippets.fileexplorer(True, "file")[0]
 length = -1  # -1 means all of file
 file = open(path, 'rb')
 text = file.read(length).decode('utf-8')
@@ -75,7 +75,7 @@ dataset = (
 #     print(id2text(i),"\n",id2text((j)))
 
 
-model = snippets.model_of_spec(path) # There is a bit of redundancy here because it makes id2char etc. layers again.
+model = snippets.model_of_spec(path) # todo: There is a bit of redundancy here because it makes id2char etc. layers again.
 
 
 print("test model")
@@ -108,9 +108,13 @@ model.compile(optimizer='adam', loss=loss)
 # Training time
 
 # Directory where the checkpoints will be saved
-checkpoint_dir = 'checkpoints/christopher-dm_katya/run_2/'
+checkpoint_dir = snippets.fileexplorer(False, "directory")
+pathexists=checkpoint_dir[2]
+if not pathexists:
+    os.mkdir(checkpoint_dir[0])
+
 # Name of the checkpoint files
-checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt_{epoch}")
+checkpoint_prefix = os.path.join(checkpoint_dir[0], "ckpt_{epoch}")
 
 checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     filepath=checkpoint_prefix,

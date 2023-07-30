@@ -94,23 +94,21 @@ def validLine(text, names):
                     return 1
                 # maybe add something here to add the name to the list of names
         else:
-            acceptable = snippets.yesNo(
-                f"The date is of abnormal length {hyphenPos} as opposed to range 16-19. Is \'{date}\' a normal date?")
-            if acceptable:
+            # acceptable = snippets.yesNo(
+            #     f"The date is of abnormal length {hyphenPos} as opposed to range 16-19. Is \'{date}\' a normal date?") #todo: have a stricter way to find dates
+            if False: #todo:am making false for now because it is really annoying
                 if name in names:
                     return 0
                 else:
-                    recognised = snippets.yesNo(f'Name not in names list: {name}. Is this name acceptable?')
+                    recognised = snippets.yesNo(f'Name not in names list: {name}. Is this name acceptable?') #todo: find stricter way. i.e, "https://" is a common false signal
                     if recognised:
                         print("Added to names list")
                         names.append(name)
                         return 0
                     else:
                         return 1
-            elif not acceptable:
-                return 0
             else:
-                sys.exit("Boolean exception")
+                return 1
     else:
         return 2 # this part represents lines without a date or name. leave this to be checked by user
 
@@ -169,14 +167,15 @@ for stend in invalidPos: # start/end pairs
     text=fileR.read(stend[1]-stend[0])
     # print(f"Current fileR position@3: {fileR.tell()}")
     if name == person and not stend[2] == 1: # first operator actually checks if the LAST LINE WITH A NAME ASSOCIATED is the same as the person being looked for. stend2-->1 means it is definitely not right
-        print("The stend code passed is",stend[2])
-        if snippets.yesNo('Text independent of message metadata: \'' + text.decode("utf-8", "strict").replace("\n","") + '\'. Keep?\nThe last message was ' + lineW.replace(
-                "\n",
-                "") + '\''):  # this is really verbose because f strings can't evaluate backslashes for some god forsaken reason
+        # print("The stend code passed is",stend[2])
+        if text.decode("utf-8", "strict").replace("\n","") != '':
+            #if snippets.yesNo('Text independent of message metadata: \'' + text.decode("utf-8", "strict").replace("\n","") + '\'. Keep?\nThe last message was ' + lineW.replace(
+                    # "\n",
+                    # "") + '\''):  # this is really verbose because f strings can't evaluate backslashes for some god forsaken reason
             fileW.write(text)
-        else:
-            print(f"Skipping {stend[0]}-{stend[1]}")
-            # print(f"Current fileR position@4: {fileR.tell()}")
+            #else:
+                #print(f"Skipping {stend[0]}-{stend[1]}")
+                # print(f"Current fileR position@4: {fileR.tell()}")
     # else: # debugging
     #     if stend[2]==2: # it is either 2 or 1.
     #         print(f"Blocked name: {name}")

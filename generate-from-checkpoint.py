@@ -5,14 +5,14 @@ import time
 import snippets
 
 print("Select the training material of the model:")
-path = snippets.fileexplorer(True, False)
+path = snippets.fileexplorer(True, "file")[0]
 model = snippets.model_of_spec(path)
 
 # time to load shit lmfao
 
 print("Select directory that holds the checkpoints:")
-checkpoint_path = snippets.fileexplorer(True, True)
-latestcheckpoint = snippets.ckpt(checkpoint_path)
+checkpoint_path = snippets.fileexplorer(True, "directory")[0]
+latestcheckpoint = snippets.ckpt(checkpoint_path+"/") # is a directory so must append /
 selectlatest = snippets.yesNo(f"The latest checkpoint is {latestcheckpoint}. Do you wish to choose this one?")
 
 if selectlatest:

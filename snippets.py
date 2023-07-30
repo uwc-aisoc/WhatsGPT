@@ -1,3 +1,5 @@
+import sys
+
 import tensorflow as tf
 import time
 import os
@@ -122,7 +124,10 @@ def ckpt(path) -> str:  # takes the directory and returns the latest checkpoint 
             curno = int(lscurdir[i][5:])  # "ckpt_" --> 5 characters
             if curno > highest:
                 highest = curno
-    return path + "ckpt_" + str(highest)  # no need for / as directory is being passed
+    if highest == 0:
+        sys.exit("It seems like there are no checkpoints in this directory")
+    else:
+        return path + "ckpt_" + str(highest)  # no need for / as directory is being passed
 
 
 # -------------general------------- #
@@ -152,11 +157,12 @@ def yesNo(prompt) -> bool:
 # ---------------------------------------------------- #
 # Dependents: all Datasets/format/ programs            #
 # Dependencies: os, yesNo.py                           #
-# Inputs: fileMustExist, forcetype                     #
+# Inputs: fileMustExist, forcetype.                    #
 #    forcetype accepts "file", "directory", forces the #
-#    user to enter the type
-# Outputs: [path, type]                                #
+#    user to enter the type                            #
+# Outputs: [path, type, exists]                        #
 #    type is either "file" or "directory"              #
+#    exists: does it [the path], or not?               #
 # ---------------------------------------------------- #
 
 
@@ -168,39 +174,36 @@ def fileexplorer(fileMustExist=False, forcetype="none") -> list[str]:
         print(f"Current directory: {os.getcwd()}\nDirectory contents:\n{os.listdir()}\n.. and . are accepted")
         cwdpath: str = input("Select file or directory: ")
         if os.path.isdir(cwdpath):
-            if forcetype not in ["file", "directory"]:
+            if forcetype != "file":
                 if yesNo(
                         "Do you wish to select this directory? If not, this program will change directories instead"):
-                    return [os.getcwd() + "/" + cwdpath, "directory"]
+                    return [os.getcwd() + "/" + cwdpath, "directory", True]
                 else:
                     print(f">cd {cwdpath}")
                     os.chdir(cwdpath)
-            elif forcetype == "file":
-                print(f"This is a directory. Please try again and select a {forcetype}")
-            else: # must be directory
-                return [os.getcwd() + "/" + cwdpath, "directory"]
+            else:
+                print(f">cd {cwdpath}") # chdir because user still has to navigate.
+                os.chdir(cwdpath)
         elif os.path.isfile(cwdpath):  # includes symlinks :o
-            if forcetype not in ["file", "directory"]:
+            if forcetype != "directory":
                 if yesNo(f"Confirm: {cwdpath}"):
-                    return [os.getcwd() + "/" + cwdpath, "file"]
+                    return [os.getcwd() + "/" + cwdpath, "file", True]
                 else:
                     print("Cancelled, reenter:")
-            elif forcetype == "directory":
-                print(f"This is a file. Please try again and select a {forcetype}")
             else:
-                return [os.getcwd() + "/" + cwdpath, "file"]
+                print(f"This is a file. Please try again and select a {forcetype}")
         elif not fileMustExist:
             if yesNo(
                     f"You are attempting to return a path that does not exist. Confirm: {cwdpath}"):
                 if forcetype == "file":
-                    return [os.getcwd() + "/" + cwdpath, "file"]
+                    return [os.getcwd() + "/" + cwdpath, "file", False]
                 elif forcetype == "directory":
-                    return [os.getcwd() + "/" + cwdpath, "directory"]
+                    return [os.getcwd() + "/" + cwdpath, "directory", False]
                 else:
                     if yesNo("Return a file? If not, the program will return a directory."):
-                        return [os.getcwd() + "/" + cwdpath, "file"]
+                        return [os.getcwd() + "/" + cwdpath, "file", False]
                     else:
-                        return [os.getcwd() + "/" + cwdpath, "directory"]
+                        return [os.getcwd() + "/" + cwdpath, "directory", False]
             else:
                 print("Cancelled, reenter:")
         else:
